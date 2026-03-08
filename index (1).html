@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>रक्षक AI — RakshakAI</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:#0a0a0a;color:#fff;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;overflow-x:hidden}
+
+  /* TRICOLOR */
+  .tricolor{height:5px;background:linear-gradient(to right,#FF9933 33%,#fff 33% 66%,#138808 66%);position:fixed;top:0;left:0;right:0;z-index:999}
+
+  /* SPLASH */
+  #splash{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;text-align:center}
+  .shield{font-size:80px;margin-bottom:10px;filter:drop-shadow(0 0 20px #FF6B00)}
+  .app-title{font-size:42px;font-weight:900;color:#FF6B00;letter-spacing:2px;margin-bottom:4px}
+  .app-hindi{font-size:22px;color:#FF9500;margin-bottom:6px}
+  .app-sub{font-size:13px;color:#888;margin-bottom:30px}
+  .stat-row{display:flex;gap:12px;margin-bottom:30px}
+  .stat{background:#161616;border:1px solid #222;border-radius:10px;padding:12px 16px;text-align:center;flex:1}
+  .stat-num{font-size:20px;font-weight:800}
+  .stat-lbl{font-size:10px;color:#888;margin-top:2px}
+
+  /* START BUTTON */
+  #startBtn{background:linear-gradient(135deg,#FF6B00,#FF9500);border:none;color:#fff;font-size:20px;font-weight:800;padding:20px 50px;border-radius:20px;cursor:pointer;box-shadow:0 0 30px rgba(255,107,0,0.5);width:100%;max-width:340px;transition:transform 0.1s}
+  #startBtn:active{transform:scale(0.97)}
+
+  /* PERMISSION STATUS */
+  #permStatus{margin-top:16px;font-size:13px;color:#888;text-align:center;max-width:320px}
+  .perm-ok{color:#00C853 !important}
+  .perm-err{color:#FF1744 !important}
+  .perm-wait{color:#FFD600 !important}
+
+  /* DASHBOARD */
+  #dashboard{display:none;padding:12px;padding-top:20px}
+  .section-title{font-size:11px;color:#FF6B00;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:16px 0 8px}
+
+  /* SPEED CARD */
+  .speed-card{background:linear-gradient(135deg,#161616,#1a1a1a);border:2px solid #FF6B00;border-radius:20px;padding:20px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden}
+  .speed-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#FF9933,#fff,#138808)}
+  .speed-num{font-size:72px;font-weight:900;line-height:1;color:#FF6B00}
+  .speed-unit{font-size:16px;color:#888;margin-top:2px}
+  .speed-label{font-size:13px;color:#aaa;margin-top:6px}
+  .speed-bar-wrap{background:#222;border-radius:10px;height:8px;margin-top:12px;overflow:hidden}
+  .speed-bar{height:100%;border-radius:10px;background:linear-gradient(to right,#00C853,#FFD600,#FF1744);transition:width 0.5s ease;width:0%}
+  .speed-status{font-size:13px;font-weight:700;margin-top:8px;padding:6px 16px;border-radius:20px;display:inline-block}
+  .status-safe{background:#0a2a0a;color:#00C853;border:1px solid #00C853}
+  .status-warn{background:#2a2a00;color:#FFD600;border:1px solid #FFD600}
+  .status-danger{background:#2a0000;color:#FF1744;border:1px solid #FF1744}
+
+  /* GPS INFO */
+  .gps-info{background:#111;border:1px solid #222;border-radius:14px;padding:14px;margin-bottom:12px}
+  .gps-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a1a1a}
+  .gps-row:last-child{border-bottom:none}
+  .gps-key{font-size:12px;color:#666}
+  .gps-val{font-size:13px;font-weight:700;color:#fff}
+  .gps-val.live{color:#00C853}
+
+  /* RISK SCORE */
+  .risk-card{background:#161616;border-radius:16px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+  .risk-circle{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;border:3px solid #00C853;flex-shrink:0;transition:all 0.5s}
+  .risk-info{flex:1}
+  .risk-title{font-size:13px;color:#888;margin-bottom:4px}
+  .risk-desc{font-size:15px;font-weight:700;color:#00C853}
+
+  /* CARDS GRID */
+  .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .mini-card{background:#161616;border-radius:14px;padding:14px;text-align:center;border:1px solid #222;position:relative}
+  .mini-card-icon{font-size:24px;margin-bottom:6px}
+  .mini-card-val{font-size:20px;font-weight:800;color:#FF6B00}
+  .mini-card-lbl{font-size:10px;color:#888;margin-top:2px}
+  .live-dot{width:8px;height:8px;background:#00C853;border-radius:50%;position:absolute;top:10px;right:10px;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+
+  /* CRASH DETECTION */
+  .crash-card{background:#1a0000;border:1px solid #FF1744;border-radius:16px;padding:16px;margin-bottom:12px}
+  .crash-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .crash-icon{font-size:28px}
+  .crash-title{font-size:15px;font-weight:700;color:#FF1744}
+  .crash-sub{font-size:11px;color:#888}
+  .accel-bars{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .accel-bar-wrap{text-align:center}
+  .accel-label{font-size:10px;color:#888;margin-bottom:4px}
+  .accel-val{font-size:14px;font-weight:700;color:#FF6B00}
+  .crash-status{margin-top:10px;font-size:12px;color:#888;text-align:center;padding:8px;background:#0a0000;border-radius:8px}
+
+  /* SOS */
+  .sos-section{margin-bottom:12px}
+  .sos-btn{width:100%;background:linear-gradient(135deg,#CC0000,#FF1744);border:none;color:#fff;font-size:18px;font-weight:800;padding:18px;border-radius:16px;cursor:pointer;box-shadow:0 0 20px rgba(255,23,68,0.4)}
+  .sos-btn:active{transform:scale(0.98)}
+  .call-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .call-btn{border:none;color:#fff;font-size:13px;font-weight:700;padding:14px 8px;border-radius:12px;cursor:pointer;text-align:center}
+  .call-108{background:#1565C0}
+  .call-100{background:#2E7D32}
+
+  /* DANGER ZONES */
+  .zone-card{background:#1a1000;border:1px solid #FF6B00;border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+  .zone-icon{font-size:28px;flex-shrink:0}
+  .zone-info{flex:1}
+  .zone-name{font-size:14px;font-weight:700;color:#FF9500}
+  .zone-detail{font-size:11px;color:#888;margin-top:2px}
+  .zone-dist{font-size:12px;font-weight:700;color:#FFD600;flex-shrink:0}
+
+  /* CRASH ALERT OVERLAY */
+  #crashOverlay{display:none;position:fixed;inset:0;background:rgba(180,0,0,0.95);z-index:9999;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+  #crashOverlay.show{display:flex}
+  .crash-alert-icon{font-size:80px;animation:shake 0.5s infinite}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .crash-alert-title{font-size:32px;font-weight:900;margin:10px 0}
+  .crash-alert-sub{font-size:15px;color:#ffaaaa;margin-bottom:20px}
+  .crash-countdown{font-size:64px;font-weight:900;color:#fff;margin:10px 0}
+  .crash-cancel{background:#fff;color:#CC0000;border:none;font-size:18px;font-weight:800;padding:16px 40px;border-radius:16px;cursor:pointer;margin-top:10px;width:100%}
+  .crash-calling{background:#CC0000;color:#fff;border:2px solid #fff;font-size:16px;font-weight:700;padding:14px;border-radius:12px;margin-top:8px;width:100%}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #222;display:none;grid-template-columns:repeat(4,1fr);padding:8px 0 12px}
+  .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.5;transition:opacity 0.2s}
+  .nav-item.active{opacity:1}
+  .nav-icon{font-size:20px}
+  .nav-label{font-size:9px;color:#888}
+  .nav-item.active .nav-label{color:#FF6B00}
+
+  /* TABS */
+  .tab{display:none;padding-bottom:80px}
+  .tab.active{display:block}
+
+  /* LOCATION ERROR */
+  .loc-error{background:#1a0a00;border:1px solid #FF6B00;border-radius:12px;padding:14px;margin-bottom:12px;font-size:12px;color:#FF9500;display:none}
+</style>
+</head>
+<body>
+<div class="tricolor"></div>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="shield">🛡️</div>
+  <div class="app-title">RAKSHAK AI</div>
+  <div class="app-hindi">रक्षक AI</div>
+  <div class="app-sub">आपकी सड़क, आपकी सुरक्षा • Your Road. Your Protection.</div>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-num" style="color:#FF6B00">4.5L+</div><div class="stat-lbl">सालाना दुर्घटनाएं</div></div>
+    <div class="stat"><div class="stat-num" style="color:#FF1744">1.7L</div><div class="stat-lbl">मौतें हर साल</div></div>
+    <div class="stat"><div class="stat-num" style="color:#00C853">85%</div><div class="stat-lbl">रोकी जा सकती हैं</div></div>
+  </div>
+  <button id="startBtn" onclick="startApp()">🚗 शुरू करें — Start</button>
+  <div id="permStatus">बटन दबाएं — Location permission मांगी जाएगी</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav" id="bottomNav">
+    <div class="nav-item active" onclick="showTab('speed')"><div class="nav-icon">🚗</div><div class="nav-label">Speed</div></div>
+    <div class="nav-item" onclick="showTab('crash')"><div class="nav-icon">🆘</div><div class="nav-label">Crash</div></div>
+    <div class="nav-item" onclick="showTab('zones')"><div class="nav-icon">⚠️</div><div class="nav-label">Zones</div></div>
+    <div class="nav-item" onclick="showTab('sos')"><div class="nav-icon">📞</div><div class="nav-label">SOS</div></div>
+  </div>
+
+  <!-- TAB: SPEED -->
+  <div class="tab active" id="tab-speed" style="padding:12px;padding-top:16px;padding-bottom:80px">
+    <div class="loc-error" id="locError">
+      ⚠️ Location Error: <span id="locErrorMsg"></span><br><br>
+      Fix: Chrome Settings → Site Settings → Location → suchetamaurya.github.io → Allow
+    </div>
+
+    <div class="speed-card">
+      <div class="speed-num" id="speedNum">0</div>
+      <div class="speed-unit">km/h</div>
+      <div class="speed-label" id="speedLabel">GPS चालू हो रहा है...</div>
+      <div class="speed-bar-wrap"><div class="speed-bar" id="speedBar"></div></div>
+      <div class="speed-status status-safe" id="speedStatus">✅ सुरक्षित</div>
+    </div>
+
+    <div class="gps-info">
+      <div class="section-title">📍 Live GPS Data</div>
+      <div class="gps-row"><span class="gps-key">Latitude</span><span class="gps-val live" id="gpsLat">--</span></div>
+      <div class="gps-row"><span class="gps-key">Longitude</span><span class="gps-val live" id="gpsLon">--</span></div>
+      <div class="gps-row"><span class="gps-key">Accuracy</span><span class="gps-val" id="gpsAcc">--</span></div>
+      <div class="gps-row"><span class="gps-key">Altitude</span><span class="gps-val" id="gpsAlt">--</span></div>
+      <div class="gps-row"><span class="gps-key">GPS Speed</span><span class="gps-val live" id="gpsSpeedRaw">--</span></div>
+      <div class="gps-row"><span class="gps-key">Last Updated</span><span class="gps-val" id="gpsTime">--</span></div>
+    </div>
+
+    <div class="risk-card" id="riskCard">
+      <div class="risk-circle" id="riskCircle">0</div>
+      <div class="risk-info">
+        <div class="risk-title">AI Risk Score</div>
+        <div class="risk-desc" id="riskDesc">Calculating...</div>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="mini-card"><div class="live-dot"></div><div class="mini-card-icon">📏</div><div class="mini-card-val" id="distVal">0.0</div><div class="mini-card-lbl">km travelled</div></div>
+      <div class="mini-card"><div class="mini-card-icon">⏱️</div><div class="mini-card-val" id="timeVal">00:00</div><div class="mini-card-lbl">drive time</div></div>
+      <div class="mini-card"><div class="mini-card-icon">🏎️</div><div class="mini-card-val" id="maxSpeedVal">0</div><div class="mini-card-lbl">max speed km/h</div></div>
+      <div class="mini-card"><div class="mini-card-icon">📡</div><div class="mini-card-val" id="gpsStatusVal">OFF</div><div class="mini-card-lbl">GPS status</div></div>
+    </div>
+  </div>
+
+  <!-- TAB: CRASH -->
+  <div class="tab" id="tab-crash" style="padding:12px;padding-top:16px;padding-bottom:80px">
+    <div class="crash-card">
+      <div class="crash-header">
+        <div class="crash-icon">💥</div>
+        <div><div class="crash-title">Crash Detection</div><div class="crash-sub">Accelerometer se real-time monitoring</div></div>
+      </div>
+      <div class="accel-bars">
+        <div class="accel-bar-wrap"><div class="accel-label">X-axis</div><div class="accel-val" id="accelX">0.0</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Y-axis</div><div class="accel-val" id="accelY">0.0</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Z-axis</div><div class="accel-val" id="accelZ">0.0</div></div>
+      </div>
+      <div class="accel-bars" style="margin-top:10px">
+        <div class="accel-bar-wrap"><div class="accel-label">Total G</div><div class="accel-val" id="accelTotal" style="color:#FF6B00">0.0</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Threshold</div><div class="accel-val" style="color:#888">25.0</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Status</div><div class="accel-val" id="accelStatus" style="color:#00C853">SAFE</div></div>
+      </div>
+      <div class="crash-status" id="crashStatusMsg">📱 Phone ko move karein — accelerometer data dikhega</div>
+    </div>
+
+    <div style="background:#111;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div class="section-title">⚙️ Crash Detection Settings</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span style="font-size:13px;color:#aaa">Impact Threshold (m/s²)</span>
+        <input type="range" min="10" max="50" value="25" id="thresholdSlider" style="width:120px" oninput="updateThreshold(this.value)">
+        <span style="font-size:13px;color:#FF6B00;font-weight:700" id="thresholdVal">25</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span style="font-size:13px;color:#aaa">Cancel Window</span>
+        <span style="font-size:13px;color:#FF6B00;font-weight:700">15 seconds</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: ZONES -->
+  <div class="tab" id="tab-zones" style="padding:12px;padding-top:16px;padding-bottom:80px">
+    <div class="section-title">⚠️ Accident-Prone Zones Nearby</div>
+    <div id="zonesContainer">
+      <div class="zone-card">
+        <div class="zone-icon">🚧</div>
+        <div class="zone-info"><div class="zone-name">NH-45 — Raipur Bypass</div><div class="zone-detail">High accident frequency • Overspeeding zone</div></div>
+        <div class="zone-dist" id="zone1dist">-- km</div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-icon">⚠️</div>
+        <div class="zone-info"><div class="zone-name">Bilaspur Ring Road</div><div class="zone-detail">Blind curve • 23 accidents in 2023</div></div>
+        <div class="zone-dist" id="zone2dist">-- km</div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-icon">🌧️</div>
+        <div class="zone-info"><div class="zone-name">Korba Highway Junction</div><div class="zone-detail">Poor visibility • Fog zone in winter</div></div>
+        <div class="zone-dist" id="zone3dist">-- km</div>
+      </div>
+      <div class="zone-card">
+        <div class="zone-icon">🚦</div>
+        <div class="zone-info"><div class="zone-name">Durg-Bhilai Stretch</div><div class="zone-detail">Heavy truck traffic • Pothole zone</div></div>
+        <div class="zone-dist" id="zone4dist">-- km</div>
+      </div>
+    </div>
+    <div style="background:#111;border-radius:12px;padding:12px;margin-top:8px;font-size:11px;color:#666;text-align:center">
+      📊 Data source: data.gov.in accident records • Distances calculated from your live GPS location
+    </div>
+  </div>
+
+  <!-- TAB: SOS -->
+  <div class="tab" id="tab-sos" style="padding:12px;padding-top:16px;padding-bottom:80px">
+    <div class="sos-section">
+      <button class="sos-btn" onclick="triggerSOS()">🆘 EMERGENCY SOS</button>
+      <div class="call-row">
+        <button class="call-btn call-108" onclick="call108()">🚑 Call 108<br><span style="font-size:10px;font-weight:400">Ambulance</span></button>
+        <button class="call-btn call-100" onclick="call100()">🚔 Call 100<br><span style="font-size:10px;font-weight:400">Police</span></button>
+      </div>
+    </div>
+
+    <div style="background:#111;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div class="section-title">📍 Share My Location</div>
+      <button onclick="shareLocation()" style="width:100%;background:#1565C0;border:none;color:#fff;font-size:14px;font-weight:700;padding:14px;border-radius:12px;cursor:pointer;margin-bottom:8px">
+        📲 WhatsApp par Location Share karein
+      </button>
+      <div style="font-size:11px;color:#666;text-align:center" id="locationShareText">GPS location ready hone par share hogi</div>
+    </div>
+
+    <div style="background:#111;border-radius:14px;padding:14px">
+      <div class="section-title">👨‍👩‍👧 Emergency Contacts</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#161616;border-radius:10px">
+          <span style="font-size:13px">👨 Papa</span>
+          <input type="tel" placeholder="+91 XXXXX XXXXX" id="contact1" style="background:#222;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;width:160px">
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#161616;border-radius:10px">
+          <span style="font-size:13px">👩 Mummy</span>
+          <input type="tel" placeholder="+91 XXXXX XXXXX" id="contact2" style="background:#222;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;width:160px">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CRASH OVERLAY -->
+<div id="crashOverlay">
+  <div class="crash-alert-icon">💥</div>
+  <div class="crash-alert-title">CRASH DETECTED!</div>
+  <div class="crash-alert-sub">Ambulance call hogi — <span id="countdownNum">15</span> seconds mein</div>
+  <div class="crash-countdown" id="crashCountdown">15</div>
+  <button class="crash-cancel" onclick="cancelCrash()">✋ CANCEL — Main Theek Hoon</button>
+  <button class="crash-calling" onclick="call108()">🚑 Abhi Call Karein 108</button>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let currentLat = null, currentLon = null;
+let prevLat = null, prevLon = null, prevTime = null;
+let currentSpeed = 0, maxSpeed = 0, totalDist = 0;
+let driveStart = null;
+let gpsWatchId = null;
+let crashThreshold = 25;
+let crashCountdownTimer = null;
+let crashActive = false;
+let motionPermGranted = false;
+let driveTimerInterval = null;
+
+// ═══════════════════════════════════
+// START APP — REQUEST PERMISSIONS
+// ═══════════════════════════════════
+function startApp() {
+  const btn = document.getElementById('startBtn');
+  const status = document.getElementById('permStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Permission माँग रहे हैं...';
+  status.className = 'perm-wait';
+  status.textContent = '📍 Location permission के लिए Allow दबाएं...';
+
+  // REQUEST LOCATION
+  if (!navigator.geolocation) {
+    status.className = 'perm-err';
+    status.textContent = '❌ यह browser GPS support नहीं करता। Chrome use करें।';
+    btn.disabled = false;
+    btn.textContent = '🚗 शुरू करें — Start';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      // LOCATION GRANTED
+      status.className = 'perm-ok';
+      status.textContent = '✅ Location मिल गई! App शुरू हो रही है...';
+      currentLat = pos.coords.latitude;
+      currentLon = pos.coords.longitude;
+
+      // NOW REQUEST MOTION
+      requestMotionPermission(() => {
+        launchDashboard();
+      });
+    },
+    (err) => {
+      btn.disabled = false;
+      btn.textContent = '🚗 फिर कोशिश करें — Retry';
+      status.className = 'perm-err';
+      let msg = '';
+      switch(err.code) {
+        case 1: msg = '❌ Location DENIED। Settings > Site Settings > Location > Allow करें'; break;
+        case 2: msg = '❌ Location unavailable। Phone का GPS ON करें'; break;
+        case 3: msg = '❌ Timeout। बाहर जाकर try करें (indoor GPS weak होता है)'; break;
+        default: msg = '❌ Location error: ' + err.message;
+      }
+      status.textContent = msg;
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+// ═══════════════════════════════════
+// MOTION PERMISSION (iOS 13+ needs explicit request)
+// ═══════════════════════════════════
+function requestMotionPermission(callback) {
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    // iOS 13+
+    DeviceMotionEvent.requestPermission()
+      .then(state => {
+        motionPermGranted = (state === 'granted');
+        callback();
+      })
+      .catch(() => { callback(); });
+  } else {
+    // Android — no explicit permission needed
+    motionPermGranted = true;
+    callback();
+  }
+}
+
+// ═══════════════════════════════════
+// LAUNCH DASHBOARD
+// ═══════════════════════════════════
+function launchDashboard() {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('bottomNav').style.display = 'grid';
+  driveStart = Date.now();
+
+  startGPS();
+  startAccelerometer();
+  startDriveTimer();
+  updateZoneDistances();
+}
+
+// ═══════════════════════════════════
+// GPS — HIGH ACCURACY WATCH
+// ═══════════════════════════════════
+function startGPS() {
+  document.getElementById('gpsStatusVal').textContent = 'ON';
+  document.getElementById('gpsStatusVal').style.color = '#00C853';
+
+  gpsWatchId = navigator.geolocation.watchPosition(
+    onGPSSuccess,
+    onGPSError,
+    {
+      enableHighAccuracy: true,  // Uses GPS chip, not WiFi/cell
+      timeout: 10000,
+      maximumAge: 0              // Always fresh, never cached
+    }
+  );
+}
+
+function onGPSSuccess(pos) {
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
+  const acc = pos.coords.accuracy;
+  const alt = pos.coords.altitude;
+  const now = Date.now();
+  const time = new Date(pos.timestamp);
+
+  currentLat = lat;
+  currentLon = lon;
+
+  // HIDE ERROR
+  document.getElementById('locError').style.display = 'none';
+
+  // USE GPS NATIVE SPEED IF AVAILABLE (most accurate)
+  let speed = 0;
+  if (pos.coords.speed !== null && pos.coords.speed >= 0) {
+    speed = pos.coords.speed * 3.6; // m/s → km/h
+  } else if (prevLat !== null) {
+    // Fallback: calculate from coordinates
+    const dist = haversine(prevLat, prevLon, lat, lon);
+    const timeDiff = (now - prevTime) / 1000; // seconds
+    if (timeDiff > 0) speed = (dist / timeDiff) * 3600;
+  }
+
+  // Smooth speed (remove GPS noise)
+  currentSpeed = speed < 2 ? 0 : Math.round(speed * 10) / 10;
+
+  // Distance
+  if (prevLat !== null) {
+    const d = haversine(prevLat, prevLon, lat, lon);
+    if (d < 0.5) totalDist += d; // Ignore GPS jumps > 500m
+  }
+
+  prevLat = lat; prevLon = lon; prevTime = now;
+  if (currentSpeed > maxSpeed) maxSpeed = currentSpeed;
+
+  // UPDATE UI
+  document.getElementById('speedNum').textContent = Math.round(currentSpeed);
+  document.getElementById('gpsLat').textContent = lat.toFixed(6);
+  document.getElementById('gpsLon').textContent = lon.toFixed(6);
+  document.getElementById('gpsAcc').textContent = Math.round(acc) + ' meters';
+  document.getElementById('gpsAlt').textContent = alt ? Math.round(alt) + ' m' : 'N/A';
+  document.getElementById('gpsSpeedRaw').textContent = pos.coords.speed !== null ? (pos.coords.speed * 3.6).toFixed(1) + ' km/h (native)' : 'calculated';
+  document.getElementById('gpsTime').textContent = time.toLocaleTimeString();
+  document.getElementById('distVal').textContent = totalDist.toFixed(2);
+  document.getElementById('maxSpeedVal').textContent = Math.round(maxSpeed);
+
+  updateSpeedUI(currentSpeed);
+  updateRiskScore(currentSpeed);
+  updateZoneDistances();
+}
+
+function onGPSError(err) {
+  const errEl = document.getElementById('locError');
+  const msgEl = document.getElementById('locErrorMsg');
+  errEl.style.display = 'block';
+  switch(err.code) {
+    case 1: msgEl.textContent = 'Permission denied — Chrome Settings se allow karein'; break;
+    case 2: msgEl.textContent = 'GPS unavailable — phone ka location ON karein'; break;
+    case 3: msgEl.textContent = 'Timeout — bahar jayein, indoor GPS weak hota hai'; break;
+  }
+  document.getElementById('speedLabel').textContent = '❌ GPS Error — Retry karein';
+  document.getElementById('gpsStatusVal').textContent = 'ERR';
+  document.getElementById('gpsStatusVal').style.color = '#FF1744';
+}
+
+// ═══════════════════════════════════
+// SPEED UI UPDATE
+// ═══════════════════════════════════
+function updateSpeedUI(speed) {
+  const bar = document.getElementById('speedBar');
+  const status = document.getElementById('speedStatus');
+  const label = document.getElementById('speedLabel');
+  const pct = Math.min((speed / 120) * 100, 100);
+  bar.style.width = pct + '%';
+
+  if (speed === 0) {
+    label.textContent = '🚗 चल रहे हैं? Speed दिखेगी...';
+    status.className = 'speed-status status-safe';
+    status.textContent = '✅ रुके हुए हैं';
+  } else if (speed < 40) {
+    label.textContent = '✅ Safe speed — अच्छा!';
+    status.className = 'speed-status status-safe';
+    status.textContent = '✅ सुरक्षित गति';
+  } else if (speed < 80) {
+    label.textContent = '⚠️ Moderate speed — ध्यान रखें';
+    status.className = 'speed-status status-warn';
+    status.textContent = '⚠️ सावधान रहें';
+  } else {
+    label.textContent = '🚨 बहुत तेज! Speed कम करें!';
+    status.className = 'speed-status status-danger';
+    status.textContent = '🚨 खतरनाक गति!';
+    vibrate([200, 100, 200]);
+  }
+}
+
+// ═══════════════════════════════════
+// RISK SCORE
+// ═══════════════════════════════════
+function updateRiskScore(speed) {
+  let risk = 0;
+  if (speed > 0) risk += Math.min((speed / 120) * 60, 60);
+  // Time of day risk
+  const hr = new Date().getHours();
+  if (hr >= 22 || hr <= 5) risk += 20;
+  else if (hr >= 18 || hr <= 8) risk += 10;
+  risk = Math.min(Math.round(risk), 100);
+
+  const circle = document.getElementById('riskCircle');
+  const desc = document.getElementById('riskDesc');
+  circle.textContent = risk;
+
+  if (risk < 30) {
+    circle.style.borderColor = '#00C853';
+    circle.style.color = '#00C853';
+    desc.style.color = '#00C853';
+    desc.textContent = 'कम जोखिम — Safe Drive!';
+  } else if (risk < 60) {
+    circle.style.borderColor = '#FFD600';
+    circle.style.color = '#FFD600';
+    desc.style.color = '#FFD600';
+    desc.textContent = 'मध्यम जोखिम — सावधान';
+  } else {
+    circle.style.borderColor = '#FF1744';
+    circle.style.color = '#FF1744';
+    desc.style.color = '#FF1744';
+    desc.textContent = '⚠️ उच्च जोखिम — Speed कम करें!';
+  }
+}
+
+// ═══════════════════════════════════
+// ACCELEROMETER
+// ═══════════════════════════════════
+function startAccelerometer() {
+  if (!window.DeviceMotionEvent) {
+    document.getElementById('crashStatusMsg').textContent = '❌ Accelerometer not supported on this device';
+    return;
+  }
+
+  window.addEventListener('devicemotion', onMotion, true);
+  document.getElementById('crashStatusMsg').textContent = '✅ Accelerometer active — phone move karein';
+}
+
+function onMotion(e) {
+  const acc = e.accelerationIncludingGravity;
+  if (!acc) return;
+
+  const x = acc.x || 0;
+  const y = acc.y || 0;
+  const z = acc.z || 0;
+  const total = Math.sqrt(x*x + y*y + z*z);
+
+  document.getElementById('accelX').textContent = x.toFixed(1);
+  document.getElementById('accelY').textContent = y.toFixed(1);
+  document.getElementById('accelZ').textContent = z.toFixed(1);
+  document.getElementById('accelTotal').textContent = total.toFixed(1);
+
+  const status = document.getElementById('accelStatus');
+  if (total > crashThreshold && !crashActive) {
+    status.textContent = '💥 IMPACT!';
+    status.style.color = '#FF1744';
+    triggerCrashAlert();
+  } else if (total > 15) {
+    status.textContent = '⚠️ HIGH';
+    status.style.color = '#FFD600';
+    document.getElementById('crashStatusMsg').textContent = '⚠️ High movement detected — ' + total.toFixed(1) + ' m/s²';
+  } else {
+    status.textContent = 'SAFE';
+    status.style.color = '#00C853';
+    document.getElementById('crashStatusMsg').textContent = '✅ Normal movement — ' + total.toFixed(1) + ' m/s²';
+  }
+}
+
+// ═══════════════════════════════════
+// CRASH ALERT
+// ═══════════════════════════════════
+function triggerCrashAlert() {
+  if (crashActive) return;
+  crashActive = true;
+  let count = 15;
+  document.getElementById('crashOverlay').classList.add('show');
+  document.getElementById('crashCountdown').textContent = count;
+  vibrate([500, 200, 500, 200, 500]);
+
+  crashCountdownTimer = setInterval(() => {
+    count--;
+    document.getElementById('crashCountdown').textContent = count;
+    document.getElementById('countdownNum').textContent = count;
+    if (count <= 0) {
+      clearInterval(crashCountdownTimer);
+      document.getElementById('crashOverlay').classList.remove('show');
+      crashActive = false;
+      call108();
+    }
+  }, 1000);
+}
+
+function cancelCrash() {
+  clearInterval(crashCountdownTimer);
+  document.getElementById('crashOverlay').classList.remove('show');
+  crashActive = false;
+}
+
+function triggerSOS() {
+  if (confirm('SOS भेजें? 108 call होगी और location share होगी।')) {
+    call108();
+    shareLocation();
+  }
+}
+
+function call108() { window.location.href = 'tel:108'; }
+function call100() { window.location.href = 'tel:100'; }
+
+function shareLocation() {
+  if (currentLat && currentLon) {
+    const maps = `https://maps.google.com/?q=${currentLat},${currentLon}`;
+    const msg = `🚨 EMERGENCY! RakshakAI — Mujhe madad chahiye!\n📍 Location: ${maps}\n🚗 Speed: ${Math.round(currentSpeed)} km/h\n⏰ Time: ${new Date().toLocaleTimeString()}`;
+    const wa = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    document.getElementById('locationShareText').textContent = `📍 ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`;
+    window.open(wa, '_blank');
+  } else {
+    alert('GPS location abhi ready nahi hai. Thoda intezaar karein.');
+  }
+}
+
+// ═══════════════════════════════════
+// DANGER ZONES — distance from GPS
+// ═══════════════════════════════════
+const dangerZones = [
+  { lat: 21.2514, lon: 81.6296 }, // NH-45 Raipur
+  { lat: 22.0797, lon: 82.1391 }, // Bilaspur
+  { lat: 22.3595, lon: 82.7501 }, // Korba
+  { lat: 21.1938, lon: 81.3509 }, // Durg
+];
+
+function updateZoneDistances() {
+  if (!currentLat) return;
+  dangerZones.forEach((z, i) => {
+    const d = haversine(currentLat, currentLon, z.lat, z.lon);
+    const el = document.getElementById('zone' + (i+1) + 'dist');
+    if (el) {
+      el.textContent = d.toFixed(1) + ' km';
+      el.style.color = d < 5 ? '#FF1744' : d < 20 ? '#FFD600' : '#00C853';
+    }
+  });
+}
+
+// ═══════════════════════════════════
+// HAVERSINE DISTANCE (km)
+// ═══════════════════════════════════
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ═══════════════════════════════════
+// DRIVE TIMER
+// ═══════════════════════════════════
+function startDriveTimer() {
+  driveTimerInterval = setInterval(() => {
+    if (!driveStart) return;
+    const elapsed = Math.floor((Date.now() - driveStart) / 1000);
+    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('timeVal').textContent = m + ':' + s;
+  }, 1000);
+}
+
+// ═══════════════════════════════════
+// UTILS
+// ═══════════════════════════════════
+function updateThreshold(v) {
+  crashThreshold = parseInt(v);
+  document.getElementById('thresholdVal').textContent = v;
+}
+
+function vibrate(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const tabs = ['speed','crash','zones','sos'];
+  const idx = tabs.indexOf(name);
+  document.querySelectorAll('.nav-item')[idx].classList.add('active');
+}
+</script>
+</body>
+</html>
